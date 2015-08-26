@@ -1,0 +1,112 @@
+= Goals
+
+I'm trying to provide a somewhat meaningful example of https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#Why_Can.27t_I_Just_HTML_Entity_Encode_Untrusted_Data.3F[Why Can't I Just HTML Entity Encode Untrusted Data?].
+I'd like the demo to work within a JSP (or other Java Based Templating Technology).
+Concreely, I've currently come up with the following example:
+
+[source,xml]
+----
+<html>
+<head></head>
+<body>
+<script>
+    <c:out value="alert(7)"/>
+</script>
+<p>
+    <c:out value="alert(7)"/>
+</p>
+</body>
+</html>
+----
+
+The example demonstrates how properly HTML encoding an untrusted value `alert(7)` will be fine in an HTML context, but unsafe in a `<script>`.
+However, it is not very realistic because a user would likely place the untrusted value in quotes:
+
+[source,xml]
+----
+<html>
+<head></head>
+<body>
+<script>
+    var v = '<c:out value="alert(7)"/>';
+</script>
+<p>
+    <c:out value="alert(7)"/>
+</p>
+</body>
+</html>
+----
+
+With the value in quotes, the difficulty with getting XSS is that c:out escapes `"`.
+For example, the following:
+
+[source,xml]
+----
+<script>
+    var a = "<c:out value="\";alert(7)\\"/>";
+</script>
+----
+
+becomes:
+
+
+[source,html]
+----
+<script>
+    var a = "&#034;;alert(7)\";
+</script>
+----
+
+In summary:
+
+* I'd like to demo https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#Why_Can.27t_I_Just_HTML_Entity_Encode_Untrusted_Data.3F[Why Can't I Just HTML Entity Encode Untrusted Data?].
+* I'd like the demo to work within a JSP (or other Java Based Templating Technology) but within a more realistic context.
+* I'm fine if the attack is simply popping up an alert.
+* It does not need to be html vs script (it could be something like an HTML vs HTML attribute). So long as it is something a somewhat responsible user would do (i.e. I assume the user would put quotes on the attribute, put quotes around the value injected into the JavaScript `var v = '${htmlEncodedValue}'`, etc)
+
+I've put together a sample application for playing around with creating the sample at https://github.com/rwinch/spring-boot-xss.
+The README contains details on the sample.
+
+= Running the Sample
+
+To run the sample from the command line use:
+
+[source,bash]
+----
+$ ./gradlew bootRun
+----
+
+You can also import as an existing project into Eclipse using:
+
+[source,bash]
+----
+$ ./gradlew eclipse
+----
+
+File->Import->Existing Project into Workspace
+
+Then you can run by right clicking on `SpringBootXssApplication.java` and selecting Run As->Java Application
+
+= Project Structure
+
+The value being injected can be controlled in `SpringBootXssApplication`.
+I'm not doing this via URL parameters since many browsers protect against reflective XSS these days.
+
+Below is a guide to manipulating the templates:
+
+|===
+| Technology | Template Location | URL
+
+| JSP
+| link:src/main/webapp/WEB-INF/jsp/jsp.jsp[src/main/webapp/WEB-INF/jsp/jsp.jsp]
+| http://localhost:8080/
+
+| Thymeleaf
+| link:src/main/resources/templates/thymeleaf.html[src/main/resources/templates/thymeleaf.html]
+| http://localhost:8080/thymeleaf
+
+| Velocity
+| link:src/main/resources/templates/velocity.vm[src/main/resources/templates/velocity.vm]
+| http://localhost:8080/velocity
+|===
+

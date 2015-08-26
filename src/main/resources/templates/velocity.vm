@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<body>
+	<script>
+	var username = "$esc.html(${username})";
+	</script>
+	<p>Hi $esc.html(${username})</p>
+</body>
+
+</html>
